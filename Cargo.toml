@@ -3,8 +3,16 @@ name = "aoc-2020"
 version = "0.0.0"
 edition = "2021"
 
-[[bin]]
-path = "./01/main.rs"
-name = "one"
-
 [dependencies]
+itertools = "*"
+
+[dev-dependencies]
+criterion = "*"
+
+[[bench]]
+name = "day01"
+harness = false
+
+[features]
+defaults = []
+# read_inputs = []
