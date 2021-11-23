@@ -1,5 +1,3 @@
-pub const INPUT: &str = include_str!("inputs/02");
-
 /// An entry in the form: a-b x: abcdef
 pub struct Entry<'a> {
     letter: char,
