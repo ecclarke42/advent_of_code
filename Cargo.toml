@@ -4,10 +4,11 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-itertools = "*"
+itertools = "0.10"
+thiserror = "1"
 
 [dev-dependencies]
-criterion = "*"
+criterion = "0.3"
 
 [[bench]]
 name = "day01"

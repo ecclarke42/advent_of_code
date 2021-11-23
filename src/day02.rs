@@ -1,42 +1,97 @@
-const INPUT: &str = include_str!("inputs/02");
+pub const INPUT: &str = include_str!("inputs/02");
 
-struct Entry<'a> {
+/// An entry in the form: a-b x: abcdef
+pub struct Entry<'a> {
     letter: char,
-    min: usize,
-    max: usize,
+    a: usize,
+    b: usize,
 
     data: &'a str,
 }
 
-impl<'a> Entry<'a> {
-    pub fn validate(&self) -> bool {
-        let instances = self.data.chars().filter(|d| d == &self.letter).count();
-        (instances <= self.max) && (instances >= self.min)
+// TODO: FromStr isn't happy about lifetimes
+// impl<'a> FromStr for Entry<'a> {
+// type Err = ParseError;
+// fn from_str(s: &str) -> Result<Self, Self::Err> {
+impl<'a> TryFrom<&'a str> for Entry<'a> {
+    type Error = ParseError;
+    fn try_from(s: &'a str) -> Result<Self, Self::Error> {
+        let mut parts = s.split_whitespace();
+
+        let (a, b) = parts
+            .next()
+            .ok_or(ParseError::NotEnough)?
+            .split_once('-')
+            .ok_or(ParseError::SplitAB)?;
+
+        let letter = parts
+            .next()
+            .ok_or(ParseError::NotEnough)?
+            .trim_end_matches(':')
+            .chars()
+            .next()
+            .ok_or(ParseError::NoLetter)?;
+
+        let data = parts.next().ok_or(ParseError::NotEnough)?;
+
+        Ok(Entry {
+            letter,
+            a: a.parse()?,
+            b: b.parse()?,
+            data,
+        })
     }
 }
 
-fn parse_line_naive(line: &str) -> Option<Entry<'_>> {
-    let mut parts = line.split_whitespace();
+#[derive(Debug, thiserror::Error)]
+pub enum ParseError {
+    #[error("Not enough data in the input")]
+    NotEnough,
 
-    let (min, max) = parts.next()?.split_once('-')?;
-    let letter = parts.next()?.trim_end_matches(':').chars().next()?;
-    let data = parts.next()?;
+    #[error("Failed to split \"a-b\"")]
+    SplitAB,
 
-    Some(Entry {
-        letter,
-        min: min.parse().ok()?,
-        max: max.parse().ok()?,
-        data,
-    })
+    #[error("Missing letter argument")]
+    NoLetter,
+
+    #[error("Failed to parse a/b as integers: {0}")]
+    ParseInt(#[from] std::num::ParseIntError),
 }
 
-pub fn naive() -> usize {
-    INPUT
-        .split('\n')
-        .filter(|line| {
-            parse_line_naive(line)
-                .expect("Failed to parse line")
-                .validate()
-        })
-        .count()
+impl<'a> Entry<'a> {
+    pub fn parse_naive(
+        input: &'a str,
+    ) -> impl Iterator<Item = Result<Entry<'a>, ParseError>> + Clone {
+        input.split('\n').map(Self::try_from)
+    }
+
+    /// Validate for part 1, where `a` is character min, `b` is character max
+    pub fn validate_1(&self) -> bool {
+        let min = self.a;
+        let max = self.b;
+        let instances = self.data.chars().filter(|d| d == &self.letter).count();
+        (instances <= max) && (instances >= min)
+    }
+
+    /// Validate for part 2, where `a` and `b` are positions in `data` where the
+    /// entry is valid if exactly one of those contains `letter`.
+    ///
+    /// NOTE: `a` and `b` are 1-indexed
+    pub fn validate_2(&self) -> bool {
+        let a = self
+            .data
+            .chars()
+            .nth(self.a - 1)
+            .map(|c| c == self.letter)
+            .expect("a");
+
+        let b = self
+            .data
+            .chars()
+            .nth(self.b - 1)
+            .map(|c| c == self.letter)
+            .expect("b");
+
+        a ^ b
+    }
 }
