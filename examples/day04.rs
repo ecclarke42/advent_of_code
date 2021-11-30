@@ -12,11 +12,13 @@ fn main() {
 
     println!("Part 2:");
     let valid = raw
-        .filter_map(|r| Passport::try_from(r).ok())
-        .filter(|p| p.validate().is_ok())
+        .filter_map(|r| {
+            Passport::try_from(r)
+                .ok()
+                .map(|p| p.validate().map(|_| p).ok())
+                .flatten()
+        })
         .count();
-
-    // TODO: Getting 155, but this is wrong
 
     println!("\tFound {} valid passports", valid);
 }
@@ -32,6 +34,16 @@ mod tests {
                 .filter_map(Result::ok)
                 .count(),
             260
+        );
+    }
+
+    #[test]
+    fn part_2() {
+        assert_eq!(
+            Passport::parse_iter_from(INPUT)
+                .filter_map(|p| p.ok().map(|p| p.validate().ok()).flatten())
+                .count(),
+            153
         );
     }
 }

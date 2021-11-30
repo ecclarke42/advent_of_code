@@ -45,6 +45,7 @@ pub struct Passport<'a> {
     expiration_year: i32,
 
     // #[serde(rename = "hgt")]
+    #[validate]
     height: Height,
 
     // #[serde(rename = "hcl")]
@@ -212,7 +213,7 @@ pub struct Id<'a>(&'a str);
 impl<'a> TryFrom<&'a str> for Id<'a> {
     type Error = ();
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {
-        if value.chars().count() != 9 {
+        if value.chars().count() != 9 || !value.chars().all(char::is_numeric) {
             Err(())
         } else {
             Ok(Id(value))
@@ -260,6 +261,7 @@ impl<'a> TryFrom<&'a str> for RawPassport<'a> {
     }
 }
 
+#[derive(Debug)]
 pub enum PassportKeyError<'a> {
     MissingBirthYear,
     MissingIssueYear,
@@ -292,6 +294,7 @@ impl<'a> Passport<'a> {
     }
 }
 
+#[derive(Debug)]
 pub enum PassportParseError<'a> {
     Key(PassportKeyError<'a>),
     Value(PassportValueError),
@@ -327,6 +330,7 @@ impl<'a> TryFrom<RawPassport<'a>> for Passport<'a> {
     }
 }
 
+#[derive(Debug)]
 pub enum PassportValueError {
     BirthYear(std::num::ParseIntError),
     IssueYear(std::num::ParseIntError),
@@ -336,69 +340,3 @@ pub enum PassportValueError {
     EyeColor(String),
     Id,
 }
-
-// pub mod serde_passport {
-
-//     #[derive(Debug, thiserror::Error)]
-//     pub enum Error {
-//         #[error("After finishing deserialization, there are characters left in the input")]
-//         TrailingCharacters,
-
-//         #[error("Custom error: {0}")]
-//         Custom(String),
-//     }
-
-//     impl serde::de::Error for Error {
-//         fn custom<T>(msg: T) -> Self
-//         where
-//             T: std::fmt::Display,
-//         {
-//             Self::Custom(msg.to_string())
-//         }
-//     }
-
-//     pub struct Deserializer<'de> {
-//         input: &'de str,
-//     }
-
-//     impl<'de> Deserializer<'de> {
-//         pub fn from_str(input: &'de str) -> Self {
-//             Deserializer { input }
-//         }
-//     }
-
-//     pub fn from_str<'a, T>(s: &'a str) -> Result<T, Error>
-//     where
-//         T: serde::Deserialize<'a>,
-//     {
-//         let mut deserializer = Deserializer::from_str(s);
-//         let t = T::deserialize(&mut deserializer)?;
-//         if deserializer.input.is_empty() {
-//             Ok(t)
-//         } else {
-//             Err(Error::TrailingCharacters)
-//         }
-//     }
-
-//     impl<'de> Deserializer<'de> {
-//         fn parse_bool(&self,
-//     }
-
-//     impl<'de, 'a> serde::Deserializer<'de> for &'a mut Deserializer<'de> {
-//         type Error = Error;
-
-//         fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-//         where
-//             V: serde::de::Visitor<'de>,
-//         {
-
-//             visitor.visit_str(v)
-//         }
-
-//         fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-//         where
-//                 V: serde::de::Visitor<'de> {
-
-//         }
-//     }
-// }
