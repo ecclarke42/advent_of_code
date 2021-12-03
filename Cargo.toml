@@ -5,8 +5,10 @@ edition = "2021"
 
 [dependencies]
 # chrono = { version = "0.4", features = ["serde"] }
+daggy = "*"
 hex = "0.4"
 itertools = "0.10"
+nom = "7"
 serde = { version = "1", features = ["derive"] }
 thiserror = "1"
 validator = { version = "0.14", features = ["derive"] }

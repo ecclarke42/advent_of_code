@@ -1,9 +1,6 @@
-use std::{
-    collections::{BTreeSet, HashSet},
-    str::FromStr,
-};
+use std::collections::HashSet;
 
-use aoc_2020::day06::*;
+// use aoc_2020::day06::*;
 
 pub const INPUT: &str = include_str!("../inputs/06");
 
